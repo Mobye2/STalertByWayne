@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import os
-
+import comfunc as cf
 
 def conv_to_list(obj):
     '''
@@ -45,13 +45,6 @@ def date_get_today(with_time=False):
     else:
         now = datetime.datetime.now(central).date()
     return now
-
-
-def datetoTWslash(date):
-    date = str(date)
-    date = date.replace('-', "/")
-    date = date.replace('2023', "112", 1)
-    return date
 
 
 def beforeend():
@@ -126,10 +119,10 @@ for i in range(0, len(stock_nolist)):  # len(stock_nolist)
     filt = data['證券代號'] == stock_nolist[i]
     keptdata = pd.DataFrame(data.loc[filt].drop('證券代號', axis=1))
     keptdata = keptdata.drop('證券名稱', axis=1)
-    try:
-        keptdata['日期'] = datetoTWslash(strdate)
-    except:
-        pass
+    # print (keptdata)
+    # print (cf.datetoTWslash(strdate))
+    keptdata['日期'] = cf.datetoTWslash(strdate)
+
     # 將各股今日交易結果聯集到歷史資料
     historydata = pd.read_csv(
         path+'/112kdnewhistory/'+hislist.iat[i, 0], thousands=',')

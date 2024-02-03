@@ -71,8 +71,8 @@ for i in range(0, len(infilename)):
     # 讀個股歷史資料並取得日期與價格列表
     historydatadir = path+'/112kdnewhistory/'
     tdate, finalprice = readcsvgetpf(historydatadir, infilename.iat[i, 0])
-    print(infilename.iat[i, 0])
-    # print (tdate,finalprice)
+    #print(tdate, finalprice)
+    print (infilename.iat[i, 0])
     # 建立空白個股指標表
     phlist = makephlist()
     period = 5  # 價格是前後period天的峰值

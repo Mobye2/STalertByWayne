@@ -49,7 +49,7 @@ def makehistorylist(historylistdir):
 
 
 # 要更新的月份
-date = 20231001
+date = 20240201
 path = os.getcwd()
 # 歷史檔案清單與清單內股票代號
 hislist = pd.read_csv(path+'/historylist.csv', encoding='utf-8-sig')
@@ -74,7 +74,7 @@ for i in range(0, len(hislist)):  # len(hislist)
     # print('list=', list)
 
     # 取得自有歷史資料
-    thehistory = pd.read_csv(path+'/kdnewhistory/'+hislist.iat[i, 0])
+    thehistory = pd.read_csv(path+'/112kdnewhistory/'+hislist.iat[i, 0])
 
     # 刪除既有指定月份資料
     for j in list:
@@ -88,7 +88,7 @@ for i in range(0, len(hislist)):  # len(hislist)
     thehistory.drop(thehistory.columns[thehistory.columns.str.contains(
         '0  ', case=False)], axis=1, inplace=True)
 
-    thehistory.to_csv(path+'/112newhistory/' +
+    thehistory.to_csv(path+'/112kdnewhistory/' +
                       hislist.iat[i, 0], index=False, encoding='utf-8-sig')
     print('休息3-6秒')
-    time.sleep(random.uniform(3, 6))
+    time.sleep(random.uniform(1, 4))

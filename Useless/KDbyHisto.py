@@ -10,14 +10,14 @@ fostocklist = pd.read_csv(indir+filename, thousands=',')
 
 
 # turn days trade
-for i in range(0, 1):  # len(fostocklist)
+for i in range(0, len(fostocklist)):  # len(fostocklist)
     k = 0.5
     d = 0.5
     hisfilename = fostocklist.iat[i, 0]
     print(hisfilename)
 #   name = hisfilename.split(' ')
 #    print(name[1])
-    data = pd.read_csv(path+'/112newhistory/'+hisfilename,
+    data = pd.read_csv(path+'/112kdnewhistory/'+hisfilename,
                        thousands=',')
     # print(data)
     # print(data.at[8, '最高價'])
@@ -50,7 +50,12 @@ for i in range(0, 1):  # len(fostocklist)
         data.at[x, 'd'] = d
     # print(data.tail(15))
     # print(data.head(15))
-    data.to_csv(path+'/112kdnewhistory/'+hisfilename, encoding='utf-8-sig')
+    data['5MA'] = data['收盤價'].rolling(5).mean()
+    data['10MA'] = data['收盤價'].rolling(10).mean()
+    data['20MA'] = data['收盤價'].rolling(20).mean()
+    # drop the column with Unnamed
+    data = data.loc[:, ~data.columns.str.contains('Unnamed')]
+    data.to_csv(path+'/112kdnewhistory/'+hisfilename, encoding='utf-8-sig',index=False)
     # print(data)
 
 

@@ -3,13 +3,6 @@ import pandas as pd
 import datetime
 
 
-def datetoTWslash(date):
-    date = str(date)
-    date = date.replace('-', "/")
-    date = date.replace('2022', "111", 1)
-    return date
-
-
 def date_get_today(with_time=False):
     '''
     取得今日日期，並指定為台北時區

@@ -34,11 +34,22 @@ for i in range(0, len(fostocklist)):  #
     print(hisfilename)
     name = hisfilename.split(' ')
     st_no = name[1]
-    print(st_no)
-    '''# 刪除價格資料用
+    # print(st_no)
     data = pd.read_csv(path+'/112kdnewhistory/'+hisfilename,
-                       thousands=',', index_col=0)
-    '''
+                       thousands=',', index_col=None,encoding='utf-8-sig')
+    
+    # 刪除指定日期資料
+    # dates_to_drop = ["2024/01/02", "2024/01/03", "2024/01/23"]
+    # data = data[~data['日期'].isin(dates_to_drop)]
+
+    # Delete the column with Unnamed
+    data = data.loc[:, ~data.columns.str.contains('0')]
+    #print (data)
+
+    # print(data)
+    data.to_csv(path+'/112kdnewhistory/'+hisfilename,
+                encoding='utf-8-sig', index=False)
+'''
     # 刪除FINACING資料用
     data = pd.read_csv(path+'/newfinancing/'+st_no+'stock_fiancing.csv',
                        thousands=',', index_col=0)
@@ -48,15 +59,7 @@ for i in range(0, len(fostocklist)):  #
     print(data)
     data.to_csv(path+'/112newfinacing/'+st_no+'stock_financing.csv',
                 encoding='utf-8-sig', index_label=0)
-'''
-    filter = data['日期'] == '112/01/14'
-    data['filter'] = filter
-    data.drop(data[data['filter'] == True].index, inplace=True)
-    filter = data['日期'] == '112/01/15'
-    data['filter'] = filter
-    data.drop(data[data['filter'] == True].index, inplace=True)
+                    '''
 
-    # print(data)
-    data.to_csv(path+'/kdnewhistory/'+hisfilename,
-                encoding='utf-8-sig', index_label=0)
-'''
+    
+
