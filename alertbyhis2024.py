@@ -264,6 +264,52 @@ def MAcross(historydataI, magapday):  # MA交叉，連續n日縮小最後翻正
         MAcrossJ = False
     return MAcrossJ, messeagMG
 
+def highpeaklinecross(historydataI):
+    peakdata = pd.read_csv(path+'/periodhigh/' + filename+"periodhigh.csv", thousands=",")  # thounsands可以去千位符號
+    peaklinemes = tuple()
+    # get date last two highest price in column 'lhdate'
+    lastdates=[peakdata.at[len(peakdata)-2, 'lhdate'],peakdata.at[len(peakdata)-1, 'lhdate']]
+    lastdates = [cf.datetoTWslash(lastdates[0]),cf.datetoTWslash(lastdates[1])]
+    # find number of rows between the date in historydataI  
+    # print (highlasttwo)
+    index1,index2 = historydataI.isin([lastdates[0]]).any(axis=1).idxmax(),historydataI.isin([lastdates[1]]).any(axis=1).idxmax()
+    index=index2-index1
+    slope= (historydataI.at[index2, '收盤價']-historydataI.at[index1, '收盤價'])/index
+    # the rows between the last row and index1
+    priceonline=historydataI.at[index2, '收盤價']+(len(historydataI)-1-index2)*slope
+    # if last histprydataI price cross the line of priceonline, peaklinemes=True
+    try:
+        if (priceonline*0.98<(historydataI.at[len(historydataI)-1, '收盤價'])<priceonline*1.02):
+            if (slope>0.1) or (slope<-0.1):
+                peaklinemes = '靠近','高區間線'
+    except:
+        print ('peaklinecross failed')
+    return peaklinemes
+
+def lowpeaklinecross(historydataI):
+    peakdata = pd.read_csv(path+'/periodlow/' + filename+"periodlow.csv", thousands=",")  # thounsands可以去千位符號
+    peaklinemes = tuple()
+    # get date last two lowest price in column 'pldate'
+    lastdates=[peakdata.at[len(peakdata)-2, 'pldate'],peakdata.at[len(peakdata)-1, 'pldate']]
+    lastdates = [cf.datetoTWslash(lastdates[0]),cf.datetoTWslash(lastdates[1])]
+    # find number of rows between the date in historydataI  
+    # print (highlasttwo)
+    index1,index2 = historydataI.isin([lastdates[0]]).any(axis=1).idxmax(),historydataI.isin([lastdates[1]]).any(axis=1).idxmax()
+    index=index2-index1
+    slope= (historydataI.at[index2, '收盤價']-historydataI.at[index1, '收盤價'])/index
+    # the rows between the last row and index1
+    priceonline=historydataI.at[index2, '收盤價']+(len(historydataI)-1-index2)*slope
+    # if last histprydataI price cross the line of priceonline, peaklinemes=True
+    try:
+        if (priceonline*0.98<(historydataI.at[len(historydataI)-1, '收盤價'])<priceonline*1.02):
+            if (slope>0.1) or (slope<-0.1):
+                peaklinemes = '靠近','低區間線'
+    except:
+        print ('peaklinecross failed')
+    return peaklinemes
+
+
+
 
 '''
 ====================================main=====================================
@@ -296,17 +342,19 @@ for i in range(0, len(fostocklist)):  # len(fostocklist)
 # 融資告警
 #    Finmessage2 = finAlert(path, stock_no, strtodate, stryesdate)
 # 下影線告警
-    loShadowAlert = lowshadow(historydata, twstrtodate, stock_no+stock_name)
+#    loShadowAlert = lowshadow(historydata, twstrtodate, stock_no+stock_name)
 # 上影線告警
-    upShadowAlert = upshadow(historydata, twstrtodate, stock_no+stock_name)
+#    upShadowAlert = upshadow(historydata, twstrtodate, stock_no+stock_name)
 # KD值鈍化告警
-    kdmesseage = kdkpassive(historydataI)
+#    kdmesseage = kdkpassive(historydataI)
 # MA支撐告警
-    MAsupmes = MAlowtouch(historydataI)
+#    MAsupmes = MAlowtouch(historydataI)
 # MA黃金交叉
     MAGapJ, messeagMG = MAcross(historydataI, 4)
-    comMes = twomes + upShadowAlert + \
-        messeagMG + kdmesseage   # + Finmessage2+ MAsupmes+ loShadowAlert
+# 高低峰線交叉
+    highpeakline = highpeaklinecross(historydataI)
+    lowpeakline = lowpeaklinecross(historydataI)
+    comMes = twomes  +  messeagMG + highpeakline+lowpeakline   # + Finmessage2+ MAsupmes+ loShadowAlert+ kdmesseage+ upShadowAlert
 
 # 印出結果與LINE告警機制
     print(hisfilename)

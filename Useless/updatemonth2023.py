@@ -49,7 +49,7 @@ def makehistorylist(historylistdir):
 
 
 # 要更新的月份
-date = 20240201
+date = 20240201 
 path = os.getcwd()
 # 歷史檔案清單與清單內股票代號
 hislist = pd.read_csv(path+'/historylist.csv', encoding='utf-8-sig')

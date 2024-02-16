@@ -149,13 +149,57 @@ def thresholdtouch(stock_no, stock_name, periodhigh, todayprice, yesprice, perio
     twomes = message+message1
     return twomes
 
+# check if the price cross the line of last two lowest price
+
+def highpeaklinecross(historydataI):
+    peakdata = pd.read_csv(path+'/periodhigh/' + filename+"periodhigh.csv", thousands=",")  # thounsands可以去千位符號
+    peaklinemes = tuple()
+    # get date last two highest price in column 'lhdate'
+    lastdates=[peakdata.at[len(peakdata)-2, 'lhdate'],peakdata.at[len(peakdata)-1, 'lhdate']]
+    lastdates = [cf.datetoTWslash(lastdates[0]),cf.datetoTWslash(lastdates[1])]
+    # find number of rows between the date in historydataI  
+    # print (highlasttwo)
+    index1,index2 = historydataI.isin([lastdates[0]]).any(axis=1).idxmax(),historydataI.isin([lastdates[1]]).any(axis=1).idxmax()
+    index=index2-index1
+    slope= (historydataI.at[index2, '收盤價']-historydataI.at[index1, '收盤價'])/index
+    # the rows between the last row and index1
+    priceonline=historydataI.at[index2, '收盤價']+(len(historydataI)-1-index2)*slope
+    # if last histprydataI price cross the line of priceonline, peaklinemes=True
+    try:
+        if (priceonline*0.98<(historydataI.at[len(historydataI)-1, '收盤價'])<priceonline*1.02):
+            peaklinemes = '越過區間線',priceonline
+    except:
+        print ('peaklinecross failed')
+    return peaklinemes
+
+def lowpeaklinecross(historydataI):
+    peakdata = pd.read_csv(path+'/periodlow/' + filename+"periodlow.csv", thousands=",")  # thounsands可以去千位符號
+    peaklinemes = tuple()
+    # get date last two lowest price in column 'pldate'
+    lastdates=[peakdata.at[len(peakdata)-2, 'pldate'],peakdata.at[len(peakdata)-1, 'pldate']]
+    lastdates = [cf.datetoTWslash(lastdates[0]),cf.datetoTWslash(lastdates[1])]
+    # find number of rows between the date in historydataI  
+    # print (highlasttwo)
+    index1,index2 = historydataI.isin([lastdates[0]]).any(axis=1).idxmax(),historydataI.isin([lastdates[1]]).any(axis=1).idxmax()
+    index=index2-index1
+    slope= (historydataI.at[index2, '收盤價']-historydataI.at[index1, '收盤價'])/index
+    # the rows between the last row and index1
+    priceonline=historydataI.at[index2, '收盤價']+(len(historydataI)-1-index2)*slope
+    # if last histprydataI price cross the line of priceonline, peaklinemes=True
+    try:
+        if (priceonline*0.98<(historydataI.at[len(historydataI)-1, '收盤價'])<priceonline*1.02):
+            peaklinemes = '越過區間線',priceonline
+    except:
+        print ('peaklinecross failed')
+    return peaklinemes
+
 
 def periodpeak(path, filename):
     # 依證券號碼取得峰值指標檔案
     periodhigh = pd.read_csv(
         path+'/periodhigh/' + filename+"periodhigh.csv", thousands=",")  # thounsands可以去千位符號
     periodlow = pd.read_csv(
-        path+'/periodlow/'+filename+"periodlow.csv")
+        path+'/periodlow/'+filename+"periodlow.csv", thousands=",")
     # 只查看最近N天內的指標
     filtday = 60
     periodhigh = filtph(filtday, todate, periodhigh)
@@ -265,6 +309,7 @@ def MAcross(historydataI, magapday):  # MA交叉，連續n日縮小最後翻正
     return MAcrossJ, messeagMG
 
 
+
 '''
 ====================================main=====================================
 '''
@@ -274,13 +319,15 @@ filename = '/historylist.csv'
 fostocklist = pd.read_csv(path+filename, thousands=',')
 
 # 依列表序取得檔名
-for i in range(0, len(fostocklist)):  # len(fostocklist)
+for i in range(0, len(fostocklist)): 
     # 打開歷史資料並取得今日與昨日金額
     hisfilename = fostocklist.iat[i, 0]
     fulldir = path+'/112kdnewhistory/'+hisfilename
     historydata = pd.read_csv(fulldir, thousands=',', index_col="日期")
     todate, strtodate, twstrtodate, yesdate, stryesdate, twstryesdate = workday(
         historydata, todate)
+    twstrtodate="113/02/02"
+    twstryesdate="113/02/01"
     todayprice, yesprice = getprice(historydata, twstrtodate, twstryesdate)
 # 取得個股編號與名稱
     hisfilename = hisfilename.split()
@@ -291,33 +338,40 @@ for i in range(0, len(fostocklist)):  # len(fostocklist)
 # 取得峰值檔案
     periodhigh, periodlow = periodpeak(path, filename)
 # 峰值告警
-    twomes = thresholdtouch(
-        stock_no, stock_name, periodhigh, todayprice, yesprice, periodlow)
-# 融資告警
-#    Finmessage2 = finAlert(path, stock_no, strtodate, stryesdate)
-# 下影線告警
-    loShadowAlert = lowshadow(historydata, twstrtodate, stock_no+stock_name)
-# 上影線告警
-    upShadowAlert = upshadow(historydata, twstrtodate, stock_no+stock_name)
-# KD值鈍化告警
-    kdmesseage = kdkpassive(historydataI)
-# MA支撐告警
-    MAsupmes = MAlowtouch(historydataI)
-# MA黃金交叉
-    MAGapJ, messeagMG = MAcross(historydataI, 4)
-    comMes = twomes + upShadowAlert + \
-        messeagMG + kdmesseage   # + Finmessage2+ MAsupmes+ loShadowAlert
+#     twomes = thresholdtouch(
+#         stock_no, stock_name, periodhigh, todayprice, yesprice, periodlow)
+# # 融資告警
+# #    Finmessage2 = finAlert(path, stock_no, strtodate, stryesdate)
+# # 下影線告警
+#     loShadowAlert = lowshadow(historydata, twstrtodate, stock_no+stock_name)
+# # 上影線告警
+#     upShadowAlert = upshadow(historydata, twstrtodate, stock_no+stock_name)
+# # KD值鈍化告警
+#     kdmesseage = kdkpassive(historydataI)
+# # MA支撐告警
+#     MAsupmes = MAlowtouch(historydataI)
+# # MA黃金交叉
+#     MAGapJ, messeagMG = MAcross(historydataI, 4)
+#     comMes = twomes + upShadowAlert + \
+#         messeagMG + kdmesseage   # + Finmessage2+ MAsupmes+ loShadowAlert
+    print (stock_no, stock_name)
+    highpeakmes=highpeaklinecross(historydataI)
+    lowpeakmes=lowpeaklinecross(historydataI)
+    # if len(highpeakmes)>1:
+    #     print (highpeakmes)
+    if len(lowpeakmes)>1:
+        print (lowpeakmes)
 
 # 印出結果與LINE告警機制
-    print(hisfilename)
-    if len(comMes) > 1:
-        stinfo = tuple()
-        stinfo = twstrtodate, '\n', stock_no, stock_name, '\n'
-        finalMes = stinfo + comMes
-        print(finalMes)
+    # print(hisfilename)
+    # if len(comMes) > 1:
+    #     stinfo = tuple()
+    #     stinfo = twstrtodate, '\n', stock_no, stock_name, '\n'
+    #     finalMes = stinfo + comMes
+    #     print(finalMes)
 
-        token = 'YirsvmhRjT15zQMuSrEihN4i3upGFFJaulP9F6ly2EE'
-        lineNotifyMessage(token, finalMes)
+    #     token = 'YirsvmhRjT15zQMuSrEihN4i3upGFFJaulP9F6ly2EE'
+    #     lineNotifyMessage(token, finalMes)
 
 
 '''

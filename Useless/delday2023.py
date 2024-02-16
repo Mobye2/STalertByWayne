@@ -39,8 +39,8 @@ for i in range(0, len(fostocklist)):  #
                        thousands=',', index_col=None,encoding='utf-8-sig')
     
     # 刪除指定日期資料
-    # dates_to_drop = ["2024/01/02", "2024/01/03", "2024/01/23"]
-    # data = data[~data['日期'].isin(dates_to_drop)]
+    dates_to_drop = ["113/02/06", "113/02/16"]
+    data = data[~data['日期'].isin(dates_to_drop)]
 
     # Delete the column with Unnamed
     data = data.loc[:, ~data.columns.str.contains('0')]
