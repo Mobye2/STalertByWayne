@@ -85,43 +85,81 @@ def MAcross(data, x, magapday):  # x為日期 n為20MA-5MA，由負轉正的追�
         MAGapJ = False
     return MAGapJ
 
+#長期趨勢向上回檔打底 slope of 40MA is positive, 20MA is negative, 5MA is around 0s
+def pullbackCorrection(data, x):
+    #increase column 60MA
+    data['40MA'] = data['收盤價'].rolling(window=40).mean()
+    #slope of 60MA
+
+    data['Slope_40_MA'] = data['40MA'].diff()
+    data['Slope_20_MA'] = data['20MA'].diff()
+    data['Slope_5_MA'] = data['5MA'].diff()
+    if data.at[x, 'Slope_40_MA'] > 0.15:
+        # if 20MA is negative
+        if data.at[x, 'Slope_20_MA'] < 0:
+            slope = True
+        #slope of 5MA around 0s
+            if  (data.at[x, 'Slope_5_MA'] <0.2) & (data.at[x, 'Slope_5_MA'] >(-0.2)):
+                slope = True
+                # print (data.at[x,'Slope_40_MA'],data.at[x,'Slope_20_MA'],data.at[x,'Slope_5_MA'])
+                # print (data['40MA'],data['Slope_40_MA'])
+            else:
+                slope = False
+            return slope
+
+
 
 win = 0
 lose = 0
 totalaveprofit = []
 
-thresperc = 7  # 買賣門檻值
+thresperc = 7  # 買賣%數門檻值
 
-for thresperc in range(4, 9):
+for thresperc in range(8, 9):
     thresperc += 1
     thres = thresperc*0.01
     count = 0
-    for i in range(0, len(fostocklist)):  # len(fostocklist)
+    for i in range(0, len(fostocklist)):
 
         hisfilename = fostocklist.iat[i, 0]
         # print(hisfilename)
         data = pd.read_csv(path+'/112kdnewhistory/'+hisfilename,
                            thousands=',')  # , index_col=0
+
         stockprofit = []
         saleday = 0
+        print (hisfilename,'\n')
+
         for x in range(10, len(data)-10):
             list = []
+
             # print("kd_passavation=", kd_passavation(data, x))
     # 賣出後才可再買入
             if x < saleday:
                 continue
     # 指定購入條件
+            
             # 上影線+交易量<平均交易量，勝率57%，多頭時期88%
-            # multi = 1  # n倍交易量為門檻
-            # if up_shadow(data, x) == True and volume_explode(data, x, multi) == False:
-                #    and data.at[x, '收盤價'] > data.at[x, '開盤價']
+            # multi = 3  # n倍交易量為門檻
+            # if up_shadow(data, x) == True and volume_explode(data, x, multi) == False and data.at[x, '收盤價'] > data.at[x, '開盤價']:
+            
             # MA交叉 MAgapday追蹤天數 高勝率
             # if MAcross(data, x, 4) == True:
                 # low_shadow(data, x, 3) == True:
+            
             # KD鈍化
-            if MAlowsupport(data, x) and volume_explode(data, x, 2):
+            # if MAlowsupport(data, x) and volume_explode(data, x, 2):
+            #     buyprice = data.at[x+1, '開盤價']
+            #     count += 1
+            #     print (hisfilename,'\n',data.at[x+1,'日期'],buyprice)
+            
+            # 趨勢向上築底
+            if pullbackCorrection(data, x) == True:
                 buyprice = data.at[x+1, '開盤價']
+                print (data.at[x+1,'日期'],buyprice)
+
                 count += 1
+
     # 賣出條件_漲跌達7%
                 d = 0
 

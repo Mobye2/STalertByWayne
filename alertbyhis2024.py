@@ -309,7 +309,30 @@ def lowpeaklinecross(historydataI):
     return peaklinemes
 
 
+def pullbackCorrection(historydataI):
+    x = len(historydataI)-1
+    correction=tuple()
+    #increase column 60MA
+    historydataI['40MA'] = historydataI['收盤價'].rolling(window=40).mean()
+    #slope of 60MA
 
+    historydataI['Slope_40_MA'] = historydataI['40MA'].diff()
+    historydataI['Slope_20_MA'] = historydataI['20MA'].diff()
+    historydataI['Slope_5_MA'] = historydataI['5MA'].diff()
+    try:
+        if historydataI.at[x, 'Slope_40_MA'] > 0.15:
+            # if 20MA is negative
+            if historydataI.at[x, 'Slope_20_MA'] < 0:
+            #slope of 5MA around 0s
+                if  (historydataI.at[x, 'Slope_5_MA'] <0.2) & (historydataI.at[x, 'Slope_5_MA'] >(-0.2)):
+                    slope = True
+                    # print (historydataI.at[x,'Slope_40_MA'],historydataI.at[x,'Slope_20_MA'],historydataI.at[x,'Slope_5_MA'])
+                    # print (data['40MA'],data['Slope_40_MA'])
+                    correction=('長期趨勢向上回檔打底','')
+    except:
+        print ('pullbackCorrection failed')
+    return correction
+            
 
 '''
 ====================================main=====================================
@@ -344,17 +367,21 @@ for i in range(0, len(fostocklist)):  # len(fostocklist)
 # 下影線告警
 #    loShadowAlert = lowshadow(historydata, twstrtodate, stock_no+stock_name)
 # 上影線告警
-#    upShadowAlert = upshadow(historydata, twstrtodate, stock_no+stock_name)
+    upShadowAlert = upshadow(historydata, twstrtodate, stock_no+stock_name)
 # KD值鈍化告警
 #    kdmesseage = kdkpassive(historydataI)
 # MA支撐告警
 #    MAsupmes = MAlowtouch(historydataI)
 # MA黃金交叉
     MAGapJ, messeagMG = MAcross(historydataI, 4)
-# 高低峰線交叉
-    highpeakline = highpeaklinecross(historydataI)
+# 價格碰到低峰連線
+    # highpeakline = highpeaklinecross(historydataI)
     lowpeakline = lowpeaklinecross(historydataI)
-    comMes = twomes  +  messeagMG + highpeakline+lowpeakline   # + Finmessage2+ MAsupmes+ loShadowAlert+ kdmesseage+ upShadowAlert
+# 長期趨勢向上回檔打底
+    correction=pullbackCorrection(historydataI)
+# Alert content
+    comMes = twomes  +  messeagMG + lowpeakline+correction+upShadowAlert   # + Finmessage2+ MAsupmes+ loShadowAlert+ kdmesseage+ upShadowAlert
+
 
 # 印出結果與LINE告警機制
     print(hisfilename)
